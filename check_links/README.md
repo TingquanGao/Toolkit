@@ -3,7 +3,7 @@
 ## 1. 使用
 
 ```python
-python path_to_repo/Tools/check_links/check_links.py --root_dir ./docs --suffix .md .py --save_path ./check.csv --j_anchor True --j_file True --j_http True
+python path_to_repo/Toolkit/check_links/check_links.py --root_dir ./docs --suffix .md .py --save_path ./check.csv --j_anchor True --j_file True --j_http True
 ```
 
 ## 2. 参数说明
