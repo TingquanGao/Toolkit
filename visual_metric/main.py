@@ -2,11 +2,12 @@
 # All Rights Reserved.
 
 import argparse
+from enum import EnumMeta
 import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
 from matplotlib import cm
-from matplotlib.ticker import MultipleLocator
+
 
 def get_args():
     def str2bool(v):
@@ -30,6 +31,41 @@ def parse_chart_dict(chart_arg_list):
         x_arg, y_arg = x_y_args.split(",")
         chart_dict[chart_title] = (x_arg.strip(), y_arg.strip())
     return chart_dict
+
+
+def sort(x, y):
+    assert len(x) == len(y)
+    if len(x) < 2:
+        return x, y
+    xy = zip(x, y)
+    sorted_xy = sorted(xy, key=lambda v: v[1])
+    x, y = list(zip(*sorted_xy))
+    return x, y
+
+
+def make_approximate(v, candidate=[1, 2, 5, 10]):
+    diffs = list(map(lambda x: abs(x - v), candidate))
+    idx = diffs.index(min(diffs))
+    return candidate[idx]
+
+def get_ticks(values):
+    min_v = min(values)
+    max_v = max(values)
+    
+    step = (max_v - min_v) / 10
+
+    if step < 1:
+        step = int(1 / step)
+        magnitude = int(step / 10) + 1
+        step = 1 / (make_approximate(int(step / magnitude)) * magnitude)
+    else:
+        magnitude = int(step / 10) + 1
+        step = make_approximate(int(step / magnitude)) * magnitude
+
+    min_v = (min_v // step) * step
+    max_v = (max_v // step + 1) * step
+
+    return np.arange(min_v, max_v, step)
 
 
 class StyleMap(object):
@@ -76,13 +112,14 @@ class Visualizer(object):
                 sub_data = self.df[self.df[self.group_key] == label]
                 x_data = sub_data[xlabel].to_numpy()
                 y_data = sub_data[ylabel].to_numpy()
+                x_data, y_data = sort(x_data, y_data)
+
                 chart_data.append((label, x_data, y_data))
 
             self.darw_plot(chart_title, xlabel, ylabel, chart_data)
 
     def darw_plot(self, chart_title, xlabel, ylabel, chart_data):
         plt.figure(dpi=300)
-        ax = plt.subplot(111)
         all_x_data = []
         all_y_data = []
         for label, x_data, y_data in chart_data:
@@ -94,14 +131,8 @@ class Visualizer(object):
         plt.ylabel(ylabel)
         plt.title(chart_title)
 
-        xmajor_locator = MultipleLocator(1)
-        ymajor_locator = MultipleLocator(0.05)
-        ax.xaxis.set_major_locator(xmajor_locator)
-        ax.yaxis.set_major_locator(ymajor_locator)
-        # xminor_locator = MultipleLocator(0.5)
-        # yminor_locator = MultipleLocator(0.01)
-        # ax.xaxis.set_minor_locator(xminor_locator)
-        # ax.yaxis.set_minor_locator(yminor_locator)
+        x_ticks = get_ticks(all_x_data)
+        plt.xticks(x_ticks)
 
         plt.grid(True, linestyle = '--', alpha=0.3)
         plt.legend(loc="best")
@@ -112,6 +143,7 @@ def main(args):
     df = pd.read_csv(args.csv)
     visualizer = Visualizer(df, parse_chart_dict(args.charts))
     visualizer.draw()
+
 
 if __name__ == "__main__":
     args = get_args()
