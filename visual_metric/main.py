@@ -2,7 +2,6 @@
 # All Rights Reserved.
 
 import argparse
-from enum import EnumMeta
 import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
@@ -12,7 +11,7 @@ from matplotlib import cm
 def get_args():
     def str2bool(v):
         return v.lower() in ["1", "true", "t", True]
-    
+
     parser = argparse.ArgumentParser()
     parser.add_argument("--csv", type=str, required=True, help="The path of csv file.")
     parser.add_argument("--charts", type=str, required=True, nargs="+", help="The data to visualed. Format: Title:x,y")
@@ -51,7 +50,7 @@ def make_approximate(v, candidate=[1, 2, 5, 10]):
 def get_ticks(values):
     min_v = min(values)
     max_v = max(values)
-    
+
     step = (max_v - min_v) / 10
 
     if step < 1:
@@ -73,14 +72,13 @@ class StyleMap(object):
         super().__init__()
         self.labels = labels
         self.style_map = self.gen_style_map()
-    
+
     def __getitem__(self, label):
         return self.style_map[label]
 
     def gen_style_map(self):
         colors = cm.get_cmap("Set1", len(self.labels)).colors
-        markers = ['.', ',', 'o', 'v', '^', '<', '>', '1', '2', '3', '4', '8', 's', 'p', 'P', '*', 'h', 'H', '+', 'x', 'X', 'D',
-'d', '|', '_']
+        markers = ['o', 'v', '^', '<', '>', '1', '2', '3', '4', '8', 's', 'p', 'P', '*', 'h', 'H', '+', 'x', 'X', 'D', 'd', '|', '_']
 
         style_map = {label: (colors[idx], markers[idx % len(markers)]) for idx, label in enumerate(self.labels)}
         return style_map
@@ -106,7 +104,7 @@ class Visualizer(object):
             xlabel, ylabel = self.charts_dict[chart_title]
             assert xlabel in self.df.columns, "Error"
             assert ylabel in self.df.columns, "Error"
-            
+
             chart_data = []
             for label in self.labels:
                 sub_data = self.df[self.df[self.group_key] == label]
