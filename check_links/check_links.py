@@ -14,7 +14,7 @@ def get_args():
         return v.lower() in ("true", "t", "1", True)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--root_dir", type=str, default="./docs", help="The root directory of file(s) to be checked.")
+    parser.add_argument("--root_path", type=str, default="./docs", help="The path to file or directory of file(s) to be checked.")
     parser.add_argument("--save_path", type=str, default="check_result.csv", help="The path of result to be saved.")
     parser.add_argument("--suffix", nargs='+', type=str, default=".md", help="The suffix of file(s) to be checked.")
     parser.add_argument("--j_anchor", type=str2bool, default=True, help="Check link that jump to doc's anchor.")
@@ -94,9 +94,11 @@ class FileChecker(object):
         return True
 
 
-def recursive_walk(root_dir, suffix_list):
+def recursive_walk(root_path, suffix_list):
+    if os.path.isfile(root_path):
+        return [root_path]
     file_list = []
-    for root, dirs, files in os.walk(root_dir, followlinks=False):
+    for root, dirs, files in os.walk(root_path, followlinks=False):
         for name in files:
             for suffix in suffix_list:
                 if name.endswith(suffix):
@@ -106,7 +108,7 @@ def recursive_walk(root_dir, suffix_list):
 
 
 def main():
-    file_list = recursive_walk(root_dir, suffix_list)
+    file_list = recursive_walk(root_path, suffix_list)
     print(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
     print(f"{len(file_list)} file(s) has beed found.")
 
@@ -125,7 +127,7 @@ def main():
 if __name__ == "__main__":
     args = get_args()
 
-    root_dir = args.root_dir
+    root_path = args.root_path
     suffix_list = args.suffix
     save_path = args.save_path
 
