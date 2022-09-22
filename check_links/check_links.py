@@ -30,15 +30,15 @@ class FileChecker(object):
         self.file_path = file_path
         self.line_list = self.load_file()
 
-        # internal anchor regular expression
-        self.re_exp = r"<a name=(\"|\')(.+?)(\"|\')>.*</a>"
         self.anchor_list = self.load_anchor()
 
     # Find internal jump anchor
     def load_anchor(self):
+        # internal anchor regular expression
+        re_exp = r"<a name=(\"|\')(.+?)(\"|\')>.*</a>"
         anchor_list = []
         for line in self.line_list:
-            targets = re.findall(self.re_exp, line)
+            targets = re.findall(re_exp, line)
             if len(targets) > 0:
                 if targets[0][0] == targets[0][2]:
                     anchor_list.append(targets[0][1])
