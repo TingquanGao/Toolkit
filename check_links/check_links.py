@@ -140,7 +140,7 @@ if __name__ == "__main__":
 
     # 文档间跳转
     if args.j_file:
-        file_re_exp = {r"^(?!<!--).*\[.+\]\((?!#)(?!http)(.*?)\)": "check_exter_link"}
+        file_re_exp = {r"^(?!<!--).*\[.+\]\((?!#)(?!http)(.*?)\)": "check_exter_link", r'^<img\s+.*src="(?!http)(.*?)"': "check_exter_link"}
         re_exp_dict = {**re_exp_dict, **file_re_exp}
 
     # http link
