@@ -145,7 +145,8 @@ if __name__ == "__main__":
 
     # http link
     if args.j_http:
-        http_re_exp = {r"^(?!<!--).*\[.+\]\((http.+?)\)": "check_http", r"^(?!<!--).*\"(http.+?)\"": "check_http"}
+        # http_re_exp = {r"^(?!<!--).*\[.+\]\((http.+?)\)": "check_http", r"^(?!<!--).*\"(http.+?)\"": "check_http"}
+        http_re_exp = {r'^ *(?!<!--)http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+': "check_http"}
         re_exp_dict = {**re_exp_dict, **http_re_exp}
 
     main()
