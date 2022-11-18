@@ -16,7 +16,7 @@ def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--root_path", type=str, default="./docs", help="The path to file or directory of file(s) to be checked.")
     parser.add_argument("--save_path", type=str, default="check_result.csv", help="The path of result to be saved.")
-    parser.add_argument("--suffix", nargs='+', type=str, default=".md", help="The suffix of file(s) to be checked.")
+    parser.add_argument("--suffix", nargs='+', type=str, default=[".md"], help="The suffix of file(s) to be checked.")
     parser.add_argument("--j_anchor", type=str2bool, default=True, help="Check link that jump to doc's anchor.")
     parser.add_argument("--j_file", type=str2bool, default=True, help="Check link that jump to other file.")
     parser.add_argument("--j_http", type=str2bool, default=True, help="Check http link.")
