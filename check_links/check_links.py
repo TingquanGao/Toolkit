@@ -138,9 +138,9 @@ if __name__ == "__main__":
         anchor_re_exp = {r"^(?!<!--).*\[.+\]\(#(.*?)\)": "check_inter_link"}
         re_exp_dict = {**re_exp_dict, **anchor_re_exp}
 
-    # 文档间跳转
+    # 文档间跳转 / 本地图片
     if args.j_file:
-        file_re_exp = {r"^(?!<!--).*\[.+\]\((?!#)(?!http)(.*?)\)": "check_exter_link", r'^<img\s+.*src="(?!http)(.*?)"': "check_exter_link"}
+        file_re_exp = {r"^(?!<!--).*\[.+\]\((?!#)(?!http)(.*?)\)": "check_exter_link", r'<img\s+.*src="(?!http)(.*?)"': "check_exter_link"}
         re_exp_dict = {**re_exp_dict, **file_re_exp}
 
     # http link
