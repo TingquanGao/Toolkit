@@ -1,7 +1,10 @@
 # Copyright (c) 2022 Tingquan Gao.
 # All Rights Reserved.
 
+import copy
 import argparse
+import random
+
 import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
@@ -15,6 +18,7 @@ def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--csv", type=str, required=True, help="The path of csv file.")
     parser.add_argument("--charts", type=str, required=True, nargs="+", help="The data to visualed. Format: Title:x,y")
+    parser.add_argument("--specified", type=str, default=[], nargs="+", help="Specify style of import data. Format: DataName:ColorName,MarkerName")
     return parser.parse_args()
 
 
@@ -28,7 +32,7 @@ def parse_chart_dict(chart_arg_list):
         x_y_args = x_y_args.strip()
         assert "," in x_y_args, "[WARNINGS][Illegal args]"
         x_arg, y_arg = x_y_args.split(",")
-        chart_dict[chart_title] = (x_arg.strip(), y_arg.strip())
+        chart_dict[chart_title] = (int(x_arg.strip()), int(y_arg.strip()))
     return chart_dict
 
 
@@ -68,31 +72,98 @@ def get_ticks(values):
 
 
 class StyleMap(object):
-    def __init__(self, labels) -> None:
+    def __init__(self, labels, specifieds=[]) -> None:
         super().__init__()
-        self.labels = labels
-        self.style_map = self.gen_style_map()
+        self.style_map = self.gen_style_map(labels, specifieds)
 
     def __getitem__(self, label):
         return self.style_map[label]
 
-    def gen_style_map(self):
-        colors = cm.get_cmap("Set1", len(self.labels)).colors
-        markers = ['o', 'v', '^', '<', '>', '1', '2', '3', '4', '8', 's', 'p', 'P', '*', 'h', 'H', '+', 'x', 'X', 'D', 'd', '|', '_']
+    def gen_style_map(self, labels, specifieds):
+        labels = copy.deepcopy(labels)
+        """
+        tab:blue : #1f77b4
+        tab:orange : #ff7f0e
+        tab:green : #2ca02c
+        tab:red : #d62728
+        tab:purple : #9467bd
+        tab:brown : #8c564b
+        tab:pink : #e377c2
+        tab:gray : #7f7f7f
+        tab:olive : #bcbd22
+        tab:cyan : #17becf
+        """
+        colors_name_list = ["blue", "orange", "green", "red", "purple", "brown", "pink", "gray", "olive", "cyan"]
+        colors_rgba = list(cm.get_cmap("tab10").colors)
+        color_dict = dict(zip(colors_name_list, colors_rgba))
+        marker_dict = {
+            'o':('o', 3),
+            'v':('v', 4), 
+            '^':('^', 4), 
+            '<':('<', 4), 
+            '>':('>', 4), 
+            '1':('1', 6), 
+            '2':('2', 6), 
+            '3':('3', 6), 
+            '4':('4', 6), 
+            '8':('8', 4), 
+            's':('s', 4), 
+            'p':('p', 4), 
+            'P':('P', 4), 
+            '*':('*', 6), 
+            'h':('h', 4), 
+            'H':('H', 4), 
+            '+':('+', 4), 
+            'x':('x', 4), 
+            'X':('X', 4), 
+            'D':('D', 4), 
+            'd':('d', 4), 
+            '|':('|', 4), 
+            '_':('_', 4)
+            }
 
-        style_map = {label: (colors[idx], markers[idx % len(markers)]) for idx, label in enumerate(self.labels)}
+        style_map = {}
+        rm_colors = []
+        rm_markers = []
+        for specified in specifieds:
+            specified_label, specified_style = specified.split(":")
+            specified_color, specified_marker = specified_style.split(",")
+            specified_color = specified_color.lower()
+            assert specified_label in labels
+            assert specified_color in colors_name_list
+            assert specified_marker in marker_dict
+
+            style_map[specified_label] = (color_dict[specified_color], marker_dict[specified_marker])
+
+            labels.remove(specified_label)
+            rm_colors.append(specified_color)
+            rm_markers.append(specified_marker)
+
+        for rm_marker in rm_markers:
+            if specified_marker in marker_dict:
+                marker_dict.pop(specified_marker)
+        for rm_color in rm_colors:
+            if rm_color in color_dict:
+                color_dict.pop(rm_color)
+
+        colors = list(color_dict.values())
+        markers = list(marker_dict.values())
+        colors_length = len(colors)
+        marker_length = len(marker_dict)
+        for idx, label in enumerate(labels):
+            style_map[label] = (colors[idx % colors_length], markers[idx % marker_length])
         return style_map
 
 
 class Visualizer(object):
-    def __init__(self, df, charts_dict, group_key="series", save_dir="./") -> None:
+    def __init__(self, df, charts_dict, specified=[], group_key="series", save_dir="./") -> None:
         super().__init__()
         self.df = df
         self.charts_dict = charts_dict
         self.group_key = group_key
         self.save_dir = save_dir
         self.labels = self.re_label()
-        self.style_mapper = StyleMap(self.labels)
+        self.style_mapper = StyleMap(self.labels, specified)
 
     def re_label(self):
         labels = self.df[self.group_key].tolist()
@@ -101,9 +172,8 @@ class Visualizer(object):
 
     def draw(self):
         for chart_title in self.charts_dict:
-            xlabel, ylabel = self.charts_dict[chart_title]
-            assert xlabel in self.df.columns, "Error"
-            assert ylabel in self.df.columns, "Error"
+            xlabel_idx, ylabel_idx = self.charts_dict[chart_title]
+            xlabel, ylabel = self.df.columns[xlabel_idx], self.df.columns[ylabel_idx]
 
             chart_data = []
             for label in self.labels:
@@ -117,12 +187,13 @@ class Visualizer(object):
             self.darw_plot(chart_title, xlabel, ylabel, chart_data)
 
     def darw_plot(self, chart_title, xlabel, ylabel, chart_data):
-        plt.figure(dpi=300)
+        plt.figure(dpi=500)
         all_x_data = []
         all_y_data = []
         for label, x_data, y_data in chart_data:
             color, marker = self.style_mapper[label]
-            plt.plot(x_data, y_data, label=label, color=color, marker=marker)
+            marker_tag, marker_size = marker
+            plt.plot(x_data, y_data, label=label, color=color, marker=marker_tag, markersize=marker_size)
             all_x_data = [*all_x_data, *x_data]
             all_y_data = [*all_y_data, *y_data]
         plt.xlabel(xlabel)
@@ -132,14 +203,20 @@ class Visualizer(object):
         x_ticks = get_ticks(all_x_data)
         plt.xticks(x_ticks)
 
-        plt.grid(True, linestyle = '--', alpha=0.3)
-        plt.legend(loc="best")
-        plt.savefig(f"./{chart_title}.png")
+        plt.grid(True, linestyle='-', alpha=0.3)
+
+        handles, labels = plt.gca().get_legend_handles_labels()
+        # sort both labels and handles by labels
+        labels, handles = zip(*sorted(zip(labels, handles), key=lambda t: t[0]))
+        plt.legend(handles, labels, loc="best", prop={'size': 6})
+
+        file_name = ''.join(filter(str.isalnum, chart_title))
+        plt.savefig(f"./{file_name}.png")
 
 
 def main(args):
     df = pd.read_csv(args.csv)
-    visualizer = Visualizer(df, parse_chart_dict(args.charts))
+    visualizer = Visualizer(df, parse_chart_dict(args.charts), args.specified)
     visualizer.draw()
 
 
