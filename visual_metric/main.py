@@ -17,23 +17,23 @@ def get_args():
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--csv", type=str, required=True, help="The path of csv file.")
-    parser.add_argument("--charts", type=str, required=True, nargs="+", help="The data to visualed. Format: Title:x,y")
+    parser.add_argument("--graphs", type=str, required=True, nargs="+", help="The data to visualed. Format: Title:x,y")
     parser.add_argument("--specified", type=str, default=[], nargs="+", help="Specify style of import data. Format: DataName:ColorName,MarkerName")
     return parser.parse_args()
 
 
-def parse_chart_dict(chart_arg_list):
-    chart_dict = {}
-    for chart_arg in chart_arg_list:
-        chart_arg = chart_arg.strip()
-        assert ":" in chart_arg, "[WARNINGS][Illegal args]"
-        chart_title, x_y_args = chart_arg.split(":")
+def parse_graph_dict(graph_arg_list):
+    graph_dict = {}
+    for graph_arg in graph_arg_list:
+        graph_arg = graph_arg.strip()
+        assert ":" in graph_arg, "[WARNINGS][Illegal args]"
+        graph_title, x_y_args = graph_arg.split(":")
 
         x_y_args = x_y_args.strip()
         assert "," in x_y_args, "[WARNINGS][Illegal args]"
         x_arg, y_arg = x_y_args.split(",")
-        chart_dict[chart_title] = (int(x_arg.strip()), int(y_arg.strip()))
-    return chart_dict
+        graph_dict[graph_title] = (int(x_arg.strip()), int(y_arg.strip()))
+    return graph_dict
 
 
 def sort(x, y):
@@ -98,27 +98,27 @@ class StyleMap(object):
         color_dict = dict(zip(colors_name_list, colors_rgba))
         marker_dict = {
             'o':('o', 3),
-            'v':('v', 4), 
-            '^':('^', 4), 
-            '<':('<', 4), 
-            '>':('>', 4), 
-            '1':('1', 6), 
-            '2':('2', 6), 
-            '3':('3', 6), 
-            '4':('4', 6), 
-            '8':('8', 4), 
-            's':('s', 4), 
-            'p':('p', 4), 
-            'P':('P', 4), 
-            '*':('*', 6), 
-            'h':('h', 4), 
-            'H':('H', 4), 
-            '+':('+', 4), 
-            'x':('x', 4), 
-            'X':('X', 4), 
-            'D':('D', 4), 
-            'd':('d', 4), 
-            '|':('|', 4), 
+            'v':('v', 4),
+            '^':('^', 4),
+            '<':('<', 4),
+            '>':('>', 4),
+            '1':('1', 6),
+            '2':('2', 6),
+            '3':('3', 6),
+            '4':('4', 6),
+            '8':('8', 4),
+            's':('s', 4),
+            'p':('p', 4),
+            'P':('P', 4),
+            '*':('*', 6),
+            'h':('h', 4),
+            'H':('H', 4),
+            '+':('+', 4),
+            'x':('x', 4),
+            'X':('X', 4),
+            'D':('D', 4),
+            'd':('d', 4),
+            '|':('|', 4),
             '_':('_', 4)
             }
 
@@ -156,10 +156,10 @@ class StyleMap(object):
 
 
 class Visualizer(object):
-    def __init__(self, df, charts_dict, specified=[], group_key="series", save_dir="./") -> None:
+    def __init__(self, df, graphs_dict, specified=[], group_key="series", save_dir="./") -> None:
         super().__init__()
         self.df = df
-        self.charts_dict = charts_dict
+        self.graphs_dict = graphs_dict
         self.group_key = group_key
         self.save_dir = save_dir
         self.labels = self.re_label()
@@ -171,26 +171,26 @@ class Visualizer(object):
         return list(set(labels))
 
     def draw(self):
-        for chart_title in self.charts_dict:
-            xlabel_idx, ylabel_idx = self.charts_dict[chart_title]
+        for graph_title in self.graphs_dict:
+            xlabel_idx, ylabel_idx = self.graphs_dict[graph_title]
             xlabel, ylabel = self.df.columns[xlabel_idx], self.df.columns[ylabel_idx]
 
-            chart_data = []
+            graph_data = []
             for label in self.labels:
                 sub_data = self.df[self.df[self.group_key] == label]
                 x_data = sub_data[xlabel].to_numpy()
                 y_data = sub_data[ylabel].to_numpy()
                 x_data, y_data = sort(x_data, y_data)
 
-                chart_data.append((label, x_data, y_data))
+                graph_data.append((label, x_data, y_data))
 
-            self.darw_plot(chart_title, xlabel, ylabel, chart_data)
+            self.darw_plot(graph_title, xlabel, ylabel, graph_data)
 
-    def darw_plot(self, chart_title, xlabel, ylabel, chart_data):
+    def darw_plot(self, graph_title, xlabel, ylabel, graph_data):
         plt.figure(dpi=500)
         all_x_data = []
         all_y_data = []
-        for label, x_data, y_data in chart_data:
+        for label, x_data, y_data in graph_data:
             color, marker = self.style_mapper[label]
             marker_tag, marker_size = marker
             plt.plot(x_data, y_data, label=label, color=color, marker=marker_tag, markersize=marker_size)
@@ -198,7 +198,7 @@ class Visualizer(object):
             all_y_data = [*all_y_data, *y_data]
         plt.xlabel(xlabel)
         plt.ylabel(ylabel)
-        plt.title(chart_title)
+        plt.title(graph_title)
 
         x_ticks = get_ticks(all_x_data)
         plt.xticks(x_ticks)
@@ -210,13 +210,13 @@ class Visualizer(object):
         labels, handles = zip(*sorted(zip(labels, handles), key=lambda t: t[0]))
         plt.legend(handles, labels, loc="best", prop={'size': 6})
 
-        file_name = ''.join(filter(str.isalnum, chart_title))
+        file_name = ''.join(filter(str.isalnum, graph_title))
         plt.savefig(f"./{file_name}.png")
 
 
 def main(args):
     df = pd.read_csv(args.csv)
-    visualizer = Visualizer(df, parse_chart_dict(args.charts), args.specified)
+    visualizer = Visualizer(df, parse_graph_dict(args.graphs), args.specified)
     visualizer.draw()
 
 
