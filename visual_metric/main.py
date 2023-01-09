@@ -72,14 +72,14 @@ def get_ticks(values):
 
 
 class StyleMap(object):
-    def __init__(self, labels, specifieds=[]) -> None:
+    def __init__(self, labels, specifieds_dict=[]) -> None:
         super().__init__()
-        self.style_map = self.gen_style_map(labels, specifieds)
+        self.style_map = self.gen_style_map(labels, specifieds_dict)
 
     def __getitem__(self, label):
         return self.style_map[label]
 
-    def gen_style_map(self, labels, specifieds):
+    def gen_style_map(self, labels, specifieds_dict):
         labels = copy.deepcopy(labels)
         """
         tab:blue : #1f77b4
@@ -125,10 +125,8 @@ class StyleMap(object):
         style_map = {}
         rm_colors = []
         rm_markers = []
-        for specified in specifieds:
-            specified_label, specified_style = specified.split(":")
-            specified_color, specified_marker = specified_style.split(",")
-            specified_color = specified_color.lower()
+        for specified_label in specifieds_dict:
+            specified_color, specified_marker = specifieds_dict[specified_label]
             assert specified_label in labels
             assert specified_color in colors_name_list
             assert specified_marker in marker_dict
@@ -156,14 +154,24 @@ class StyleMap(object):
 
 
 class Visualizer(object):
-    def __init__(self, df, graphs_dict, specified=[], group_key="series", save_dir="./") -> None:
+    def __init__(self, df, graphs_dict, specifieds=[], group_key="series", save_dir="./") -> None:
         super().__init__()
         self.df = df
         self.graphs_dict = graphs_dict
+        self.specifieds_dict = self.parse_specified(specifieds)
         self.group_key = group_key
         self.save_dir = save_dir
         self.labels = self.re_label()
-        self.style_mapper = StyleMap(self.labels, specified)
+        self.style_mapper = StyleMap(self.labels, self.specifieds_dict)
+
+    def parse_specified(self, specifieds):
+        specifieds_dict = {}
+        for specified in specifieds:
+            specified_label, specified_style = specified.split(":")
+            specified_color, specified_marker = specified_style.split(",")
+            specified_color = specified_color.lower()
+            specifieds_dict[specified_label] = (specified_color, specified_marker)
+        return specifieds_dict
 
     def re_label(self):
         labels = self.df[self.group_key].tolist()
@@ -185,6 +193,19 @@ class Visualizer(object):
                 graph_data.append((label, x_data, y_data))
 
             self.darw_plot(graph_title, xlabel, ylabel, graph_data)
+        
+    def sort_labels(self, labels, handles):
+        sorted_labels = copy.deepcopy(labels)
+        sorted_labels.sort()
+
+        for specified_label in list(self.specifieds_dict.keys())[::-1]:
+            idx = sorted_labels.index(specified_label)
+            sorted_labels.pop(idx)
+            sorted_labels.insert(0, specified_label)
+
+        labels, handles = zip(*sorted(zip(labels, handles), key=lambda t: sorted_labels.index(t[0])))
+
+        return labels, handles
 
     def darw_plot(self, graph_title, xlabel, ylabel, graph_data):
         plt.figure(dpi=500)
@@ -207,7 +228,7 @@ class Visualizer(object):
 
         handles, labels = plt.gca().get_legend_handles_labels()
         # sort both labels and handles by labels
-        labels, handles = zip(*sorted(zip(labels, handles), key=lambda t: t[0]))
+        labels, handles = self.sort_labels(labels, handles)
         plt.legend(handles, labels, loc="best", prop={'size': 6})
 
         file_name = ''.join(filter(str.isalnum, graph_title))
