@@ -38,16 +38,16 @@ def get_pseudo_label(image_file2id):
     return coco_format_label_list
 
 
-def merge_save(pseudo_label_list, true_label, base_label):
-    true_label['images'] = base_label['images']
+def combined_save(pseudo_label_list, true_label, base_label):
+    combined_label['images'] = base_label['images']
 
-    for anno in true_label['annotations']:
+    for anno in combined_label['annotations']:
         anno.pop('segmentation')
         anno_id = anno['id']
 
-    true_label['annotations'].extend(pseudo_label_list)
+    combined_label['annotations'].extend(pseudo_label_list)
     with open(save_label_file_path, 'w') as f:
-        json.dump(true_label, f)
+        json.dump(combined_label, f)
 
 
 def main():
@@ -59,12 +59,12 @@ def main():
 
     image_file2id = get_image_file2id(base_label)
     pseudo_label_list = get_pseudo_label(image_file2id)
-    merge_save(pseudo_label_list, true_label, base_label)
+    combined_save(pseudo_label_list, true_label, base_label)
 
 
 if __name__ == "__main__":
     base_label_file_path = "./annotations/instances_train2017.json"
     true_label_file_path = './ssod/instances_train2017.1@10.json'
     pseudo_label_file_path = "./pseudo/detr_hgnetv2_l_ssld_thresh0.5_bbox.json"
-    save_label_file_path = "./merged/merged.json"
+    save_label_file_path = "./combined/combined.json"
     main()
