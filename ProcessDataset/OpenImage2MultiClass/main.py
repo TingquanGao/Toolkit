@@ -35,7 +35,7 @@ def format_label_list(image_class_dict, class_num):
     label_list = []
     for img_path in image_class_dict:
         label = image_class_dict[img_path]
-        onehot = np.zeros(class_num, dtype=np.int)
+        onehot = np.zeros(class_num, dtype=int)
         onehot[label] = 1
         onehot_str = ",".join(str(v) for v in list(onehot))
         label_list.append(f"{img_path}\t{onehot_str}")
