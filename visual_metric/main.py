@@ -117,7 +117,7 @@ class StyleMap(object):
             'x':('x', 4),
             'X':('X', 4),
             'D':('D', 4),
-            'd':('d', 4),
+            # 'd':('d', 4),
             '|':('|', 4),
             '_':('_', 4)
             }
@@ -193,7 +193,7 @@ class Visualizer(object):
                 graph_data.append((label, x_data, y_data))
 
             self.darw_plot(graph_title, xlabel, ylabel, graph_data)
-        
+
     def sort_labels(self, labels, handles):
         sorted_labels = copy.deepcopy(labels)
         sorted_labels.sort()
@@ -207,14 +207,20 @@ class Visualizer(object):
 
         return labels, handles
 
+    def get_zorder(self, label):
+        if label in self.specifieds_dict:
+            return 2
+        return 1
+
     def darw_plot(self, graph_title, xlabel, ylabel, graph_data):
         plt.figure(dpi=500)
         all_x_data = []
         all_y_data = []
         for label, x_data, y_data in graph_data:
             color, marker = self.style_mapper[label]
+            zorder = self.get_zorder(label)
             marker_tag, marker_size = marker
-            plt.plot(x_data, y_data, label=label, color=color, marker=marker_tag, markersize=marker_size)
+            plt.plot(x_data, y_data, label=label, color=color, marker=marker_tag, markersize=marker_size, zorder=zorder)
             all_x_data = [*all_x_data, *x_data]
             all_y_data = [*all_y_data, *y_data]
         plt.xlabel(xlabel)
