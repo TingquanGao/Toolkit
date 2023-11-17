@@ -1,0 +1,26 @@
+﻿series,model,Accuracy,Inference time/ms
+CSWinTransformer,CSWinTransformer_tiny_224,0.8281,24.189
+DeiT,DeiT_base_patch16_224,0.817,5.965060234
+DeiT,DeiT_small_patch16_224,0.796,3.518759966
+NextViT,NextViT_base_224,0.8324,12.0153842
+NextViT,NextViT_large_224,0.8363,16.51242685
+NextViT,NextViT_small_224,0.8248,7.758489847
+PVT_V2,PVT_V2_B1,0.7869,3.320434809
+PVT_V2,PVT_V2_B2,0.8206,5.942088842
+PVT_V2,PVT_V2_B3,0.831,9.462239504
+PVT_V2,PVT_V2_B4,0.8361,14.06407213
+SwinTransformer,SwinTransformer_small_patch4_window7_224,0.8275,13.705
+SwinTransformer,SwinTransformer_tiny_patch4_window7_224,0.8069,6.666
+Twins_PCPVT,pcpvt_base,0.8242,8.443248034
+Twins_PCPVT,pcpvt_small,0.8082,5.738677025
+Twins_ALT_GVT,alt_gvt_base,0.8294,7.477352858
+Twins_ALT_GVT,alt_gvt_large,0.8331,9.283476353
+Twins_ALT_GVT,alt_gvt_small,0.814,4.930588245
+UniFormer,UniFormer_base,0.8376,8.186946392
+UniFormer,UniFormer_base_ls,0.8398,14.79247427
+UniFormer,UniFormer_small,0.8294,3.6824224
+UniFormer,UniFormer_small_plus,0.8329,4.120298624
+UniFormer,UniFormer_small_plus_dim64,0.8325,3.914824963
+ViT,ViT_base_patch16_224,0.8195,5.933894396
+ViT,ViT_large_patch16_224,0.8323,15.56768632
+ViT,ViT_small_patch16_224,0.7769,3.816928864
