@@ -18,7 +18,8 @@ def get_clipboard_html():
     else:
         return None
 
-def process_html(html_data, keep_align=True, keep_width_height=True):
+def process_html(html_data, keep_align=True, keep_width_height=True, pretty=True):
+    
     soup = BeautifulSoup(html_data, 'html.parser')
     # 删除不必要的标签
     delete_tags = ['style', 'link', 'meta']
@@ -61,14 +62,19 @@ def process_html(html_data, keep_align=True, keep_width_height=True):
     for table in soup.find_all('table'):
         table['border'] = '1'
 
-    return soup.prettify()
+    if pretty:
+        return soup.prettify()
+    else:
+        return str(soup).replace("\n", "")
 
 
 def main():
     parser = argparse.ArgumentParser(description='将 Excel 剪贴板表格转换为 HTML')
-    parser.add_argument('--keep_align', action='store_true', default=True, help='保留对齐属性（align）')
+    parser.add_argument('--keep_align', action='store_true', default=False, help='保留对齐属性（align）')
     parser.add_argument('--keep_width_height', action='store_true', default=False, help='保留宽高属性（width 和 height）')
     parser.add_argument('--save_path', type=str, default="result.html", help='存储路径')
+    parser.add_argument('--print', action='store_true', default=False, help='是否打印输出 HTML')
+    parser.add_argument('--pretty', action='store_true', default=False, help='是否美化输出的 HTML')
     args = parser.parse_args()
 
     html_data = get_clipboard_html()
@@ -76,8 +82,11 @@ def main():
         output_html = process_html(
             html_data,
             keep_align=args.keep_align,
-            keep_width_height=args.keep_width_height
+            keep_width_height=args.keep_width_height, 
+            pretty=args.pretty
         )
+        if args.print:
+            print(output_html)
         with open(args.save_path, 'w', encoding='utf-8') as f:
             f.write(output_html)
         print(f"HTML 数据已保存到 {args.save_path}")
